@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/MATLAB-FFD700?style=for-the-badge&logo=mathworks&logoColor=black" alt="MATLAB"/>
   <img src="https://img.shields.io/badge/LaTeX-008080?style=for-the-badge&logo=latex&logoColor=white" alt="LaTeX"/>
   <img src="https://img.shields.io/badge/Fusion360-00FFFF?style=for-the-badge&logo=Fusion360&logoColor=black" alt="Fusion360"/>
-    <img src="https://img.shields.io/badge/Microsoft Office-00FFFF?style=for-the-badge&logo=MicrosoftOffice&logoColor=black" alt="Microsoft Office"/>
+    <img src="https://img.shields.io/badge/Microsoft Office-8B0000?style=for-the-badge&logo=MicrosoftOffice&logoColor=white" alt="Microsoft Office"/>
 </p>
 
 <p align="center">
