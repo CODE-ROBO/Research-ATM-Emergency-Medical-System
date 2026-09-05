@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/LaTeX-008080?style=for-the-badge&logo=latex&logoColor=white" alt="LaTeX"/>
   <img src="https://img.shields.io/badge/Fusion360-00FFFF?style=for-the-badge&logo=Fusion360&logoColor=black" alt="Fusion360"/>
   <img src="https://img.shields.io/badge/Microsoft Office-8B0000?style=for-the-badge&logo=MicrosoftOffice&logoColor=white" alt="Microsoft Office"/>
-  <img src="https://img.shields.io/badge/Microsoft Office-8B0000?styl
+  <img src="https://img.shields.io/badge/Microsoft Office-8B0000?
 </p>
 <p align="center">
   <img src="https://via.placeholder.com/800x400/0a0a0a/00FFFF?text=[INSERT+MEDICAL+DISPENSER+ARCHITECTURE+DIAGRAM+HERE]" alt="Medical Dispensing Architecture" width="100%"/>
