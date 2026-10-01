@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+"""
+Medical Kiosk Supervisor State Machine & Vital Triage Decision Engine
+Coordinates patient engagement, sensor data sampling, vital sign triaging,
+and dispensing actuation based on clinical threshold rules.
+"""
+
+import time
+import json
+from dataclasses import dataclass
+from enum import Enum, auto
+
+class KioskState(Enum):
+    IDLE_STANDBY = auto()
+    PATIENT_ENGAGED = auto()
+    SAMPLING_VITALS = auto()
+    PROCESSING_TRIAGE = auto()
+    EMERGENCY_ALERT = auto()
+    DISPENSING_MEDICATION = auto()
+    SYSTEM_FAULT = auto()
+
+@dataclass
+class PatientVitals:
+    heart_rate: float
+    spo2_pct: float
+    temperature_c: float
+    systolic_bp: int
+    diastolic_bp: int
+
+class KioskController:
+    def __init__(self, config_path="Data/triage_classification_thresholds.json"):
+        self.state = KioskState.IDLE_STANDBY
+        self.vitals = None
+        self.load_thresholds(config_path)
+
+    def load_thresholds(self, path):
+        try:
+            with open(path, "r") as f:
+                self.config = json.load(f)["vital_thresholds"]
+        except (FileNotFoundError, KeyError):
+            # Fallback default clinical safety limits
+            self.config = {
+                "heart_rate_bpm": {"bradycardia_critical": 40, "tachycardia_critical": 140},
+                "oxygen_saturation_spo2_pct": {"severe_hypoxia": 88.0, "normal_min": 95.0},
+                "body_temperature_celsius": {"hyperpyrexia_critical": 39.5},
+                "blood_pressure_mmhg": {
+                    "systolic": {"hypertensive_crisis": 180, "hypotension_critical": 85},
+                    "diastolic": {"hypertensive_crisis": 120, "hypotension_critical": 55}
+                }
+            }
+
+    def evaluate_triage(self, vitals: PatientVitals) -> str:
+        """Evaluates vital metrics and returns clinical alert code."""
+        # Critical Emergency Checks (CODE RED)
+        if (vitals.spo2_pct < self.config["oxygen_saturation_spo2_pct"]["severe_hypoxia"] or
+            vitals.heart_rate >= self.config["heart_rate_bpm"]["tachycardia_critical"] or
+            vitals.heart_rate <= self.config["heart_rate_bpm"]["bradycardia_critical"] or
+            vitals.temperature_c >= self.config["body_temperature_celsius"]["hyperpyrexia_critical"] or
+            vitals.systolic_bp >= self.config["blood_pressure_mmhg"]["systolic"]["hypertensive_crisis"] or
+            vitals.systolic_bp <= self.config["blood_pressure_mmhg"]["systolic"]["hypotension_critical"]):
+            return "CODE_RED"
+
+        # Warning State Checks (CODE YELLOW)
+        if (vitals.spo2_pct < self.config["oxygen_saturation_spo2_pct"]["normal_min"] or
+            vitals.temperature_c >= 37.8 or
+            vitals.systolic_bp > 130 or vitals.diastolic_bp > 85):
+            return "CODE_YELLOW"
+
+        return "CODE_GREEN"
+
+    def transition(self, event: str, payload=None):
+        if self.state == KioskState.IDLE_STANDBY and event == "APPROACH_DETECTED":
+            self.state = KioskState.PATIENT_ENGAGED
+            print("[STATE] Patient welcomed. Displaying sensor placement instructions.")
+
+        elif self.state == KioskState.PATIENT_ENGAGED and event == "HANDS_POSITIONED":
+            self.state = KioskState.SAMPLING_VITALS
+            print("[STATE] Acquisition in progress: Reading ECG, PPG, Temp, and NIBP.")
+
+        elif self.state == KioskState.SAMPLING_VITALS and event == "DATA_READY":
+            self.vitals = payload
+            self.state = KioskState.PROCESSING_TRIAGE
+            triage_code = self.evaluate_triage(self.vitals)
+            print(f"[STATE] Triaging complete. Assessment Result: {triage_code}")
+
+            if triage_code == "CODE_RED":
+                self.state = KioskState.EMERGENCY_ALERT
+                print("[ALERT] CRITICAL MEDICAL EMERGENCY DETECTED! Calling EMS, unlocking AED port.")
+            else:
+                self.state = KioskState.DISPENSING_MEDICATION
+                print("[ACTION] Diagnostic summary generated. OTC dispensing authorized.")
+
+        elif event == "RESET":
+            self.state = KioskState.IDLE_STANDBY
+            self.vitals = None
+            print("[STATE] Session concluded. Returning to IDLE_STANDBY.")
+
+if __name__ == "__main__":
+    controller = KioskController()
+    controller.transition("APPROACH_DETECTED")
+    controller.transition("HANDS_POSITIONED")
+    
+    # Test sample with acute hypoxia
+    sample = PatientVitals(heart_rate=115.0, spo2_pct=86.5, temperature_c=38.2, systolic_bp=145, diastolic_bp=92)
+    controller.transition("DATA_READY", payload=sample)
