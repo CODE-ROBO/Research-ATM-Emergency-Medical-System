@@ -1,0 +1,91 @@
+import numpy as np
+from scipy import signal
+
+class PanTompkinsQRSDetector:
+    def __init__(self, sampling_rate=250):
+        self.fs = sampling_rate
+        self.b_bandpass, self.a_bandpass = self._design_bandpass_filter()
+        self.integration_window = int(0.150 * self.fs)  # 150 ms window
+
+    def _design_bandpass_filter(self):
+        # 5 to 15 Hz 2nd-order Butterworth bandpass filter
+        lowcut = 5.0
+        highcut = 15.0
+        nyq = 0.5 * self.fs
+        b, a = signal.butter(2, [lowcut / nyq, highcut / nyq], btype='band')
+        return b, a
+
+    def process(self, ecg_signal):
+        """
+        Executes the 5 Pan-Tompkins stages:
+        1. Bandpass filter
+        2. Five-point derivative
+        3. Squaring
+        4. Moving window integration
+        5. Adaptive thresholding
+        """
+        ecg_signal = np.array(ecg_signal, dtype=float)
+        if len(ecg_signal) < self.integration_window * 2:
+            return [], 0.0
+
+        # Stage 1: Linear Bandpass Filtering
+        filtered = signal.filtfilt(self.b_bandpass, self.a_bandpass, ecg_signal)
+
+        # Stage 2: Five-Point Derivative: y[n] = (2x[n] + x[n-1] - x[n-3] - 2x[n-4]) / (8 * T)
+        diff_kernel = np.array([-2, -1, 0, 1, 2]) * (self.fs / 8.0)
+        differentiated = np.convolve(filtered, diff_kernel, mode='same')
+
+        # Stage 3: Non-Linear Squaring
+        squared = differentiated ** 2
+
+        # Stage 4: Moving Window Integrator
+        kernel = np.ones(self.integration_window) / self.integration_window
+        integrated = np.convolve(squared, kernel, mode='same')
+
+        # Stage 5: Dual-Threshold Peak Detection
+        peaks = []
+        spki = 0.35 * np.max(integrated)
+        npki = 0.10 * np.mean(integrated)
+        threshold_i1 = npki + 0.25 * (spki - npki)
+
+        min_refractory = int(0.200 * self.fs)  # 200 ms physiological refractory limit
+        last_peak = -min_refractory
+
+        candidate_peaks, _ = signal.find_peaks(integrated, distance=min_refractory)
+
+        for p in candidate_peaks:
+            if integrated[p] > threshold_i1:
+                # Find local maximum in filtered ECG near the integrated peak
+                search_start = max(0, p - int(0.08 * self.fs))
+                search_end = min(len(filtered), p + int(0.08 * self.fs))
+                r_peak = search_start + np.argmax(filtered[search_start:search_end])
+                
+                if r_peak - last_peak >= min_refractory:
+                    peaks.append(r_peak)
+                    last_peak = r_peak
+                    spki = 0.125 * integrated[p] + 0.875 * spki
+            else:
+                npki = 0.125 * integrated[p] + 0.875 * npki
+
+            threshold_i1 = npki + 0.25 * (spki - npki)
+
+        # Compute average Heart Rate (BPM)
+        if len(peaks) > 1:
+            rr_intervals = np.diff(peaks) / self.fs
+            mean_rr = np.mean(rr_intervals)
+            heart_rate_bpm = 60.0 / mean_rr if mean_rr > 0 else 0.0
+        else:
+            heart_rate_bpm = 0.0
+
+        return peaks, round(heart_rate_bpm, 1)
+
+if __name__ == "__main__":
+    fs = 250
+    t = np.linspace(0, 10, fs * 10)
+    # Generate synthetic ECG-like impulses at 1.2 Hz (72 BPM)
+    synthetic_ecg = signal.gausspulse(np.sin(2 * np.pi * 1.2 * t), fc=5)
+    
+    detector = PanTompkinsQRSDetector(sampling_rate=fs)
+    r_peaks, bpm = detector.process(synthetic_ecg)
+    print(f"[STATUS] Pan-Tompkins QRS Processing Complete.")
+    print(f"[RESULT] Detected R-Peaks: {len(r_peaks)} | Estimated HR: {bpm} BPM")
