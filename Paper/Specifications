@@ -1,0 +1,30 @@
+# Design Patent Specification: Ergonomic Point-of-Care Automated Health Diagnostic Kiosk
+
+### 1. Abstract & Scope of the Claim
+The ornamental and ergonomic structural design for an **Automated Health Diagnostic and Emergency Triage Kiosk**, characterized by a cantilevered non-contact vital sensing alcove, an integrated bio-isolated electrode hand-rest, and a secure multi-bin pharmaceutical dispenser chassis, as illustrated in the accompanying CAD boundary diagrams.
+
+---
+
+### 2. Physical Architecture & Dimensional Envelope
+* **External Chassis Dimensions:** $1950\text{ mm}$ (Height) $\times 820\text{ mm}$ (Width) $\times 740\text{ mm}$ (Depth).
+* **Ergonomic Accessibility:** Complies with ADA Wheelchair Reach Range guidelines ($380\text{ mm}$ to $1220\text{ mm}$ interactive HMI zone).
+* **Material Selection:** Antimicrobial powder-coated CRCA steel ($1.6\text{ mm}$ gauge) with high-impact polycarbonate optical shields.
+
+```text
+  ┌───────────────────────────────────────────────┐
+  │  [ HD Camera & Infrared Thermal Array ]      │  <- Tele-Health & IR Pyrometer
+  │                                               │
+  │  ┌─────────────────────────────────────────┐  │
+  │  │                                         │  │
+  │  │       21.5" Capacitive Touch HMI        │  │  <- Interactive Clinical GUI
+  │  │                                         │  │
+  │  └─────────────────────────────────────────┘  │
+  │                                               │
+  │  ┌─────────────────────────────────────────┐  │
+  │  │ [ECG Pads]   [PPG/SpO2]   [NIBP Cuff Dock]│  │  <- Bio-Isolated Vital Deck
+  │  └─────────────────────────────────────────┘  │
+  │                                               │
+  │  ┌─────────────────────────────────────────┐  │
+  │  │ [ Secure Dispenser Slot ]   [Report Out]│  │  <- Actuated Dispensing Bay
+  │  └─────────────────────────────────────────┘  │
+  └───────────────────────────────────────────────┘
