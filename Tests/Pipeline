@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""
+Unit Test Suite for Digital Signal Processing (DSP) & Peak Detection Pipeline
+"""
+
+import unittest
+import numpy as np
+from scipy import signal
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from Src.pan_tompkins_qrs import PanTompkinsQRSDetector
+
+class TestPanTompkinsPipeline(unittest.TestCase):
+    def setUp(self):
+        self.fs = 250
+        self.detector = PanTompkinsQRSDetector(sampling_rate=self.fs)
+
+    def test_empty_signal(self):
+        peaks, bpm = self.detector.process([])
+        self.assertEqual(len(peaks), 0)
+        self.assertEqual(bpm, 0.0)
+
+    def test_known_heart_rate_detection(self):
+        # 10-second signal with 72 BPM -> exactly 12 beats expected
+        duration = 10.0
+        target_bpm = 72.0
+        freq = target_bpm / 60.0
+        t = np.linspace(0, duration, int(self.fs * duration), endpoint=False)
+        
+        # Periodic pulse train mimicking QRS spikes
+        ecg_sim = np.zeros_like(t)
+        period_samples = int(self.fs / freq)
+        for i in range(0, len(t), period_samples):
+            if i + 10 < len(ecg_sim):
+                ecg_sim[i:i+10] = [0.1, 0.3, 0.8, 1.5, -0.4, -0.2, 0.05, 0.1, 0.05, 0.0]
+
+        peaks, bpm = self.detector.process(ecg_sim)
+        self.assertGreaterEqual(len(peaks), 10)
+        self.assertAlmostEqual(bpm, target_bpm, delta=4.0)
+
+    def test_noise_suppression(self):
+        # High-frequency 50Hz powerline noise + random Gaussian noise with no QRS complexes
+        t = np.linspace(0, 5, self.fs * 5)
+        pure_noise = 0.5 * np.sin(2 * np.pi * 50 * t) + np.random.normal(0, 0.2, len(t))
+        peaks, bpm = self.detector.process(pure_noise)
+        self.assertEqual(len(peaks), 0)
+
+if __name__ == '__main__':
+    unittest.main()
