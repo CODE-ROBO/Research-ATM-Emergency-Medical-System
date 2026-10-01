@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+"""
+Unit Test Suite for Emergency Clinical Decision Tree
+"""
+
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from Src.kiosk_state_machine import KioskController, PatientVitals
+
+class TestTriageLogic(unittest.TestCase):
+    def setUp(self):
+        self.controller = KioskController()
+
+    def test_normal_vitals(self):
+        nominal = PatientVitals(heart_rate=72.0, spo2_pct=98.5, temperature_c=36.7, systolic_bp=118, diastolic_bp=76)
+        self.assertEqual(self.controller.evaluate_triage(nominal), "CODE_GREEN")
+
+    def test_severe_hypoxia_trigger(self):
+        hypoxic = PatientVitals(heart_rate=80.0, spo2_pct=85.0, temperature_c=36.8, systolic_bp=120, diastolic_bp=80)
+        self.assertEqual(self.controller.evaluate_triage(hypoxic), "CODE_RED")
+
+    def test_hypertensive_crisis_trigger(self):
+        hypertensive = PatientVitals(heart_rate=88.0, spo2_pct=96.0, temperature_c=36.9, systolic_bp=195, diastolic_bp=125)
+        self.assertEqual(self.controller.evaluate_triage(hypertensive), "CODE_RED")
+
+    def test_moderate_warning_fever(self):
+        febrile = PatientVitals(heart_rate=95.0, spo2_pct=96.0, temperature_c=38.4, systolic_bp=125, diastolic_bp=82)
+        self.assertEqual(self.controller.evaluate_triage(febrile), "CODE_YELLOW")
+
+if __name__ == '__main__':
+    unittest.main()
