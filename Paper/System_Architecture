@@ -1,0 +1,28 @@
+# Cyber-Physical Architecture & Triage Pipeline
+
+### 1. Biomedical Signal Conditioning Pipeline
+Raw physiological signals collected across the physical interface are filtered to strip shop-floor electromagnetic interference (EMI) and powerline artifacts:
+
+1. **ECG Lead-II Conditioning:** Analog front-end instrumentation amplifier (AD8232 / ADS1292) providing a Common-Mode Rejection Ratio ($\text{CMRR} > 100\text{ dB}$). Bandpass filtered ($0.5\text{--}40\text{ Hz}$) to eliminate baseline wander and electromyographic (EMG) muscle tremors.
+2. **Photoplethysmogram (PPG):** High-efficiency red ($\lambda = 660\text{ nm}$) and infrared ($\lambda = 940\text{ nm}$) reflectance photodiode matrix (MAX30102). Ambient light cancellation removes 50 Hz/60 Hz ambient flicker.
+3. **Non-Contact Pyrometry:** Melexis MLX90614 factory-calibrated infrared thermopile sensor with internal 17-bit ADC, reading body temperature within $\pm 0.2^\circ\text{C}$ accuracy.
+
+---
+
+### 2. Algorithmic Processing Workflow
+
+```text
+[ Patient Identification ] ───► [ Guided Hand Placement ]
+                                          │
+    ┌─────────────────────────────────────┘
+    ▼
+[ Simultaneous Sensor Acquisition (100-250 Hz) ]
+  ├── Lead-II ECG  ──► Pan-Tompkins QRS Engine ──► Heart Rate & HRV
+  ├── Red/IR PPG   ──► Ratio-of-Ratios (R)     ──► SpO2 Calculation
+  └── IR Radiometry ──► Emissivity Calibration  ──► Core Temperature
+                                          │
+    ┌─────────────────────────────────────┘
+    ▼
+[ Multi-Vital Rule Engine (AHA Triage Thresholds) ]
+  ├── Nominal State  ──► Print Diagnostic Summary / Allow OTC Dispensing
+  └── Critical State ──► Trigger Visual Alarms & Secure Tele-Emergency Link
