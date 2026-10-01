@@ -1,0 +1,45 @@
+{
+  "triage_standards": "AHA/WHO Point-of-Care Emergency Triage Protocol",
+  "vital_thresholds": {
+    "heart_rate_bpm": {
+      "bradycardia_critical": 40,
+      "bradycardia_warning": 50,
+      "normal_min": 60,
+      "normal_max": 100,
+      "tachycardia_warning": 110,
+      "tachycardia_critical": 140
+    },
+    "oxygen_saturation_spo2_pct": {
+      "severe_hypoxia": 88.0,
+      "moderate_hypoxia": 92.0,
+      "normal_min": 95.0,
+      "normal_max": 100.0
+    },
+    "body_temperature_celsius": {
+      "hypothermia_critical": 35.0,
+      "normal_min": 36.1,
+      "normal_max": 37.2,
+      "low_grade_fever": 37.8,
+      "hyperpyrexia_critical": 39.5
+    },
+    "blood_pressure_mmhg": {
+      "systolic": {
+        "hypotension_critical": 85,
+        "normal_max": 120,
+        "prehypertension_max": 139,
+        "hypertensive_crisis": 180
+      },
+      "diastolic": {
+        "hypotension_critical": 55,
+        "normal_max": 80,
+        "prehypertension_max": 89,
+        "hypertensive_crisis": 120
+      }
+    }
+  },
+  "action_codes": {
+    "CODE_GREEN": "Vitals nominal. Routine health summary printed; preventive OTC access permitted.",
+    "CODE_YELLOW": "Non-acute anomaly detected. Tele-consultation uplink offered; OTC dispensing constrained.",
+    "CODE_RED": "Critical threshold breached. Automated external defibrillator (AED) prep, remote emergency dispatch, audio-visual guidance."
+  }
+}
